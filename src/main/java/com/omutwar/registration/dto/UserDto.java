@@ -1,4 +1,4 @@
-package com.omutwar.postgres.dto;
+package com.omutwar.registration.dto;
 
 public class UserDto {
 

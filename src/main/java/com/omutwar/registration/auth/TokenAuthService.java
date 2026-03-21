@@ -1,26 +1,40 @@
 package com.omutwar.registration.auth;
 
-import java.sql.SQLException;
-import java.time.Instant;
-import java.util.Optional;
-
 import com.omutwar.registration.domain.Session;
+import com.omutwar.registration.domain.User;
+import com.omutwar.registration.repository.UserRepository;
 import com.omutwar.registration.security.SessionSecurityService;
+import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+import java.util.Set;
+
+@Service
 public class TokenAuthService {
 
-	private final SessionSecurityService sessionSecurity = new SessionSecurityService();
+	private final SessionSecurityService sessionSecurity;
+	private final UserRepository users;
 
-	public Optional<AuthContext> authenticate(String token) throws SQLException {
-		Optional<Session> s = sessionSecurity.findSessionByToken(token);
+	public TokenAuthService(SessionSecurityService sessionSecurity, UserRepository users) {
+		this.sessionSecurity = sessionSecurity;
+		this.users = users;
+	}
 
-		if (s.isEmpty())
-			return Optional.empty();
-		if (s.get().getRevokedAt() != null)
-			return Optional.empty();
-		if (s.get().getExpiresAt().isBefore(Instant.now()))
+	public Optional<AuthContext> authenticate(String token) {
+		Optional<Session> sessionOpt = sessionSecurity.validateSession(token);
+		if (sessionOpt.isEmpty())
 			return Optional.empty();
 
-		return Optional.of(new AuthContext(s.get().getUserId()));
+		Session session = sessionOpt.get();
+
+		Optional<User> userOpt = users.findById(session.getUserId());
+		if (userOpt.isEmpty())
+			return Optional.empty();
+
+		// TODO: Replace with real user role lookup
+		Set<Role> roles = RolePermissions.defaultRolesForUser();
+		Set<Permission> perms = RolePermissions.permissionsForRoles(roles);
+
+		return Optional.of(new AuthContext(session.getUserId(), roles, perms));
 	}
 }

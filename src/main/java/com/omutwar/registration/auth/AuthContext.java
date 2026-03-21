@@ -1,13 +1,6 @@
 package com.omutwar.registration.auth;
 
-public class AuthContext {
-    private final long userId;
+import java.util.Set;
 
-    public AuthContext(long userId) {
-        this.userId = userId;
-    }
-
-    public long getUserId() {
-        return userId;
-    }
+public record AuthContext(Long userId, Set<Role> roles, Set<Permission> permissions) {
 }

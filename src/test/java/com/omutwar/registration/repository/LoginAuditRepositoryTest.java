@@ -2,26 +2,32 @@ package com.omutwar.registration.repository;
 
 import com.omutwar.registration.domain.LoginAudit;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.test.context.ActiveProfiles;
 
-import java.sql.SQLException;
 import java.time.Instant;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
-public class LoginAuditRepositoryTest {
+@DataJpaTest
+@ActiveProfiles("test")
+class LoginAuditRepositoryTest {
 
-	private final LoginAuditRepository repo = new LoginAuditRepository();
+	@Autowired
+	private LoginAuditRepository repo;
 
 	@Test
-	void testInsertAuditRecord() throws SQLException {
+	void testSaveAudit() {
 		LoginAudit a = new LoginAudit();
 		a.setUserId(1L);
 		a.setLoginTimestamp(Instant.now());
 		a.setIpAddress("127.0.0.1");
-		a.setUserAgent("JUnit Test");
+		a.setUserAgent("JUnit");
 		a.setSuccess(true);
 
-		long id = repo.insert(a);
-		assertTrue(repo.findById(id).isPresent());
+		LoginAudit saved = repo.save(a);
+
+		assertThat(saved.getId()).isNotNull();
 	}
 }

@@ -1,55 +1,55 @@
 package com.omutwar.registration.controller;
 
-import java.sql.SQLException;
-import java.time.Instant;
+import java.util.List;
 
-import org.slf4j.Logger;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-import com.omutwar.postgres.dto.UserDto;
-import com.omutwar.postgres.mapper.UserMapper;
-import com.omutwar.registration.domain.User;
-import com.omutwar.registration.exception.NotFoundException;
-import com.omutwar.registration.logging.AppLogger;
-import com.omutwar.registration.request.UserRegistrationRequest;
-import com.omutwar.registration.security.PasswordHasher;
+import com.omutwar.registration.dto.UserDto;
+import com.omutwar.registration.service.UserCreateRequest;
 import com.omutwar.registration.service.UserService;
-import com.omutwar.registration.validation.EmailValidator;
-import com.omutwar.registration.validation.ValidationUtils;
 
+import jakarta.validation.Valid;
+
+@RestController
+@RequestMapping("/users")
 public class UserController {
 
-	private static final Logger log = AppLogger.get(UserController.class);
-	private final UserService service = new UserService();
+	private final UserService userService;
 
-	public UserDto getUser(long id) throws SQLException {
-		log.info("Fetching user with id={}", id);
-
-		return service.getUserById(id).map(UserMapper::toDto)
-				.orElseThrow(() -> new NotFoundException("User not found: " + id));
+	public UserController(UserService userService) {
+		this.userService = userService;
 	}
 
-	public long registerUser(UserRegistrationRequest req) throws SQLException {
-		log.info("Registering new user: {}", req.email);
-
-		ValidationUtils.requireNonEmpty(req.email, "email");
-		ValidationUtils.requireNonEmpty(req.password, "password");
-		ValidationUtils.requireNonEmpty(req.firstName, "firstName");
-		ValidationUtils.requireNonEmpty(req.lastName, "lastName");
-		EmailValidator.validate(req.email);
-
-		User u = new User();
-		u.setEmail(req.email.trim());
-		u.setPasswordHash(PasswordHasher.hash(req.password)); // <-- HASH HERE
-		u.setFirstName(req.firstName.trim());
-		u.setLastName(req.lastName.trim());
-		u.setStatus("ACTIVE");
-		u.setCreatedAt(Instant.now());
-		u.setUpdatedAt(Instant.now());
-
-		long id = service.registerUser(u);
-		log.info("User registered successfully with id={}", id);
-
-		return id;
+	@GetMapping
+	public List<UserDto> getAllUsers() {
+		return userService.getAllUsers();
 	}
 
+	@GetMapping("/{id}")
+	public UserDto getUser(@PathVariable long id) {
+		return userService.getUser(id);
+	}
+
+	@PostMapping
+	public UserDto createUser(@Valid @RequestBody UserCreateRequest req) {
+		return userService.createUser(req);
+	}
+
+	@PutMapping("/{id}")
+	public UserDto updateUser(@PathVariable long id, @Valid @RequestBody UserDto dto) {
+		dto.id = id;
+		return userService.updateUser(id, dto);
+	}
+
+	@DeleteMapping("/{id}")
+	public void deleteUser(@PathVariable long id) {
+		userService.deleteUser(id);
+	}
 }

@@ -2,21 +2,24 @@ package com.omutwar.registration.performance;
 
 import com.omutwar.registration.repository.OrderRepository;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.test.context.ActiveProfiles;
 
-import java.sql.SQLException;
+@DataJpaTest
+@ActiveProfiles("test")
+class OrderIndexPerformanceTest {
 
-import static org.junit.jupiter.api.Assertions.*;
+	@Autowired
+	private OrderRepository repo;
 
-public class OrderIndexPerformanceTest {
+	@Test
+	void testFindByUserIdIsFast() {
+		long start = System.nanoTime();
 
-    private final OrderRepository repo = new OrderRepository();
+		repo.findByUserId(1L);
 
-    @Test
-    void testUserOrderLookupIsFast() throws SQLException {
-        long start = System.nanoTime();
-        repo.findByUserId(1);
-        long duration = System.nanoTime() - start;
-
-        assertTrue(duration < 5_000_000, "Order lookup should be fast with composite index");
-    }
+		long duration = System.nanoTime() - start;
+		assert duration < 5_000_000; // ~5ms
+	}
 }

@@ -1,34 +1,32 @@
 package com.omutwar.registration.repository;
 
-import com.omutwar.registration.domain.Product;
-import org.junit.jupiter.api.Test;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.math.BigDecimal;
-import java.sql.SQLException;
-import java.time.Instant;
-import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.test.context.ActiveProfiles;
 
-public class ProductRepositoryTest {
+import com.omutwar.registration.domain.Product;
 
-    private final ProductRepository repo = new ProductRepository();
+@DataJpaTest
+@ActiveProfiles("test")
+class ProductRepositoryTest {
 
-    @Test
-    void testInsertAndFind() throws SQLException {
-        Product p = new Product();
-        p.setName("Laptop");
-        p.setDescription("High-end gaming laptop");
-        p.setPrice(new BigDecimal("1999.99"));
-        p.setCreatedAt(Instant.now());
+	@Autowired
+	private ProductRepository repo;
 
-        long id = repo.insert(p);
-        assertTrue(repo.findById(id).isPresent());
-    }
+	@Test
+	void testSaveProduct() {
+		Product p = new Product();
+		p.setName("Widget");
+		p.setPrice(new BigDecimal("19.99"));
 
-    @Test
-    void testFindAll() throws SQLException {
-        List<Product> products = repo.findAll();
-        assertFalse(products.isEmpty());
-    }
+		Product saved = repo.save(p);
+
+		assertThat(saved.getId()).isNotNull();
+		assertThat(saved.getName()).isEqualTo("Widget");
+	}
 }

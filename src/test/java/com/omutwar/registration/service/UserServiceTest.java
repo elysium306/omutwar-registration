@@ -1,29 +1,34 @@
 package com.omutwar.registration.service;
 
 import com.omutwar.registration.domain.User;
+import com.omutwar.registration.repository.UserRepository;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 
-import java.sql.SQLException;
-import java.time.Instant;
+import static org.assertj.core.api.Assertions.assertThat;
 
-import static org.junit.jupiter.api.Assertions.*;
+@SpringBootTest
+@ActiveProfiles("test")
+class UserServiceTest {
 
-public class UserServiceTest {
+    @Autowired
+    private UserService userService;
 
-    private final UserService service = new UserService();
+    @Autowired
+    private UserRepository repo;
 
     @Test
-    void testRegisterUser() throws SQLException {
+    void testSaveAndGetByEmail() {
         User u = new User();
-        u.setEmail("service_test@example.com");
-        u.setPasswordHash("hash");
-        u.setFirstName("Service");
-        u.setLastName("Test");
-        u.setStatus("ACTIVE");
-        u.setCreatedAt(Instant.now());
-        u.setUpdatedAt(Instant.now());
+        u.setEmail("service-test@example.com");
+        u.setPasswordHash("hash123");
+        repo.save(u);
 
-        long id = service.registerUser(u);
-        assertTrue(service.getUserById(id).isPresent());
+        var found = userService.getUserByEmail("service-test@example.com");
+
+        assertThat(found).isPresent();
+        assertThat(found.get().getEmail()).isEqualTo("service-test@example.com");
     }
 }

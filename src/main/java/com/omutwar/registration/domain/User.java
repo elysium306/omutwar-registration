@@ -1,40 +1,50 @@
 package com.omutwar.registration.domain;
 
-import java.time.Instant;
+import java.time.LocalDateTime;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
+import jakarta.persistence.Table;
+
+@Entity
+@Table(name = "users")
 public class User {
 
-	private long id;
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Long id;
+
 	private String email;
+
 	private String passwordHash;
+
 	private String firstName;
+
 	private String lastName;
-	private String status;
-	private Instant createdAt;
-	private Instant updatedAt;
 
-	public User() {
-	}
+	@Column(name = "created_at", nullable = false)
+	private LocalDateTime createdAt;
 
-	public User(long id, String email, String passwordHash, String firstName, String lastName, String status,
-			Instant createdAt, Instant updatedAt) {
-		this.id = id;
-		this.email = email;
-		this.passwordHash = passwordHash;
-		this.firstName = firstName;
-		this.lastName = lastName;
-		this.status = status;
-		this.createdAt = createdAt;
-		this.updatedAt = updatedAt;
-	}
+	@Column(name = "updated_at", nullable = false)
+	private LocalDateTime updatedAt;
 
-	// Getters and setters
+	@Enumerated(EnumType.STRING)
+	private UserStatus status = UserStatus.ACTIVE;
 
-	public long getId() {
+	// getters and setters
+
+	public Long getId() {
 		return id;
 	}
 
-	public void setId(long id) {
+	public void setId(Long id) {
 		this.id = id;
 	}
 
@@ -70,27 +80,56 @@ public class User {
 		this.lastName = lastName;
 	}
 
-	public String getStatus() {
-		return status;
-	}
-
-	public void setStatus(String status) {
-		this.status = status;
-	}
-
-	public Instant getCreatedAt() {
+	public LocalDateTime getCreatedAt() {
 		return createdAt;
 	}
 
-	public void setCreatedAt(Instant createdAt) {
+	public void setCreatedAt(LocalDateTime createdAt) {
 		this.createdAt = createdAt;
 	}
 
-	public Instant getUpdatedAt() {
+	public LocalDateTime getUpdatedAt() {
 		return updatedAt;
 	}
 
-	public void setUpdatedAt(Instant updatedAt) {
+	public void setUpdatedAt(LocalDateTime updatedAt) {
 		this.updatedAt = updatedAt;
 	}
+
+	public UserStatus getStatus() {
+		return status;
+	}
+
+	public void setStatus(UserStatus status) {
+		this.status = status;
+	}
+
+	@PrePersist
+	public void prePersist() {
+		this.createdAt = LocalDateTime.now();
+		this.updatedAt = LocalDateTime.now();
+	}
+
+	@PreUpdate
+	public void preUpdate() {
+		this.updatedAt = LocalDateTime.now();
+	}
+
+	/*
+	 * 
+	 */
+
+	public enum UserStatus {
+		ACTIVE, DISABLED, PENDING_VERIFICATION;
+
+		public static UserStatus parseFrom(String status) {
+			for (UserStatus us : values()) {
+				if (us.name().equalsIgnoreCase(status.trim())) {
+					return us;
+				}
+			}
+			throw new IllegalArgumentException("No such instance <" + status + ">");
+		}
+	}
+
 }

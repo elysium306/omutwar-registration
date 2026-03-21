@@ -1,7 +1,7 @@
-package com.omutwar.postgres.mapper;
+package com.omutwar.registration.mapper;
 
-import com.omutwar.postgres.dto.OrderDto;
 import com.omutwar.registration.domain.Order;
+import com.omutwar.registration.dto.OrderDto;
 
 public final class OrderMapper {
 

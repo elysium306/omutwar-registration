@@ -1,40 +1,45 @@
 package com.omutwar.registration.domain;
 
+import jakarta.persistence.*;
+
 import java.math.BigDecimal;
 import java.time.Instant;
 
+@Entity
+@Table(name = "orders")
 public class Order {
 
-	private long id;
-	private long userId;
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Long id;
+
+	private Long userId;
+
 	private BigDecimal totalAmount;
+
 	private String status;
+
 	private Instant createdAt;
 
-	public Order() {
-	}
+	private Instant updatedAt;
 
-	public Order(long id, long userId, BigDecimal totalAmount, String status, Instant createdAt) {
-		this.id = id;
-		this.userId = userId;
-		this.totalAmount = totalAmount;
-		this.status = status;
-		this.createdAt = createdAt;
-	}
+	private String idempotencyKey;
 
-	public long getId() {
+	// getters and setters
+
+	public Long getId() {
 		return id;
 	}
 
-	public void setId(long id) {
+	public void setId(Long id) {
 		this.id = id;
 	}
 
-	public long getUserId() {
+	public Long getUserId() {
 		return userId;
 	}
 
-	public void setUserId(long userId) {
+	public void setUserId(Long userId) {
 		this.userId = userId;
 	}
 
@@ -60,5 +65,21 @@ public class Order {
 
 	public void setCreatedAt(Instant createdAt) {
 		this.createdAt = createdAt;
+	}
+
+	public Instant getUpdatedAt() {
+		return updatedAt;
+	}
+
+	public void setUpdatedAt(Instant updatedAt) {
+		this.updatedAt = updatedAt;
+	}
+
+	public String getIdempotencyKey() {
+		return idempotencyKey;
+	}
+
+	public void setIdempotencyKey(String idempotencyKey) {
+		this.idempotencyKey = idempotencyKey;
 	}
 }

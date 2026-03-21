@@ -2,24 +2,32 @@ package com.omutwar.registration.service;
 
 import com.omutwar.registration.domain.Product;
 import com.omutwar.registration.repository.ProductRepository;
+import org.springframework.stereotype.Service;
 
-import java.sql.SQLException;
 import java.util.List;
-import java.util.Optional;
 
+@Service
 public class ProductService {
 
-	private final ProductRepository productRepository = new ProductRepository();
+	private final ProductRepository products;
 
-	public long createProduct(Product product) throws SQLException {
-		return productRepository.insert(product);
+	public ProductService(ProductRepository products) {
+		this.products = products;
 	}
 
-	public Optional<Product> getProductById(long id) throws SQLException {
-		return productRepository.findById(id);
+	public List<Product> getAll() {
+		return products.findAll();
 	}
 
-	public List<Product> listProducts() throws SQLException {
-		return productRepository.findAll();
+	public Product getById(Long id) {
+		return products.findById(id).orElseThrow();
+	}
+
+	public Product save(Product product) {
+		return products.save(product);
+	}
+
+	public void delete(Long id) {
+		products.deleteById(id);
 	}
 }

@@ -1,19 +1,20 @@
 package com.omutwar.registration.auth;
 
-import java.util.EnumSet;
+import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
-public final class RolePermissions {
+public class RolePermissions {
 
-	private RolePermissions() {
+	private static final Map<Role, Set<Permission>> ROLE_MAP = Map.of(Role.ADMIN,
+			Set.of(Permission.READ, Permission.WRITE, Permission.DELETE), Role.USER, Set.of(Permission.READ));
+
+	public static Set<Role> defaultRolesForUser() {
+		// TODO: Replace with real logic (e.g., user.getRole())
+		return Set.of(Role.USER);
 	}
 
-	public static Set<Permission> getPermissions(Role role) {
-		return switch (role) {
-		case USER ->
-			EnumSet.of(Permission.READ_USER, Permission.READ_PRODUCT, Permission.READ_ORDER, Permission.CREATE_ORDER);
-		case SUPPORT -> EnumSet.of(Permission.READ_USER, Permission.READ_PRODUCT, Permission.READ_ORDER);
-		case ADMIN -> EnumSet.allOf(Permission.class);
-		};
+	public static Set<Permission> permissionsForRoles(Set<Role> roles) {
+		return roles.stream().flatMap(r -> ROLE_MAP.getOrDefault(r, Set.of()).stream()).collect(Collectors.toSet());
 	}
 }

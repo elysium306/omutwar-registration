@@ -1,44 +1,40 @@
 package com.omutwar.registration.e2e;
 
-import com.omutwar.registration.domain.User;
-import com.omutwar.registration.domain.Session;
-import com.omutwar.registration.service.UserService;
-import com.omutwar.registration.service.SessionService;
+import static org.assertj.core.api.Assertions.assertThat;
+
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.test.context.ActiveProfiles;
 
-import java.sql.SQLException;
-import java.time.Instant;
+import com.omutwar.registration.dto.LoginResponse;
+import com.omutwar.registration.request.LoginRequest;
 
-import static org.junit.jupiter.api.Assertions.*;
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@ActiveProfiles("test")
+class EndToEndRegistrationFlowTest {
 
-public class EndToEndRegistrationFlowTest {
+	@Autowired
+	private TestRestTemplate rest;
 
-    private final UserService userService = new UserService();
-    private final SessionService sessionService = new SessionService();
+	@Test
+	void testUserRegistrationAndLoginFlow() {
+		// 1. Register user
+		var registerReq = new LoginRequest();
+		registerReq.email = "test@example.com";
+		registerReq.password = "password123";
 
-    @Test
-    void testFullRegistrationFlow() throws SQLException {
-        // 1. Register user
-        User u = new User();
-        u.setEmail("flow@example.com");
-        u.setPasswordHash("hash");
-        u.setFirstName("Flow");
-        u.setLastName("Test");
-        u.setStatus("ACTIVE");
-        u.setCreatedAt(Instant.now());
-        u.setUpdatedAt(Instant.now());
+		ResponseEntity<Void> regResp = rest.postForEntity("/users/register", registerReq, Void.class);
 
-        long userId = userService.registerUser(u);
-        assertTrue(userService.getUserById(userId).isPresent());
+		assertThat(regResp.getStatusCode()).isEqualTo(HttpStatus.OK);
 
-        // 2. Create session
-        Session s = new Session();
-        s.setUserId(userId);
-        s.setToken("abcdefghijklmnopqrstuvwxyz1234567890FLOWTOKEN");
-        s.setCreatedAt(Instant.now());
-        s.setExpiresAt(Instant.now().plusSeconds(3600));
+		// 2. Login
+		ResponseEntity<LoginResponse> loginResp = rest.postForEntity("/auth/login", registerReq, LoginResponse.class);
 
-        long sessionId = sessionService.createSession(s);
-        assertTrue(sessionService.getSessionById(sessionId).isPresent());
-    }
+		assertThat(loginResp.getStatusCode()).isEqualTo(HttpStatus.OK);
+		assertThat(loginResp.getBody().token).isNotBlank();
+	}
 }

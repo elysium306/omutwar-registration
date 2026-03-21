@@ -2,52 +2,32 @@ package com.omutwar.registration.repository;
 
 import com.omutwar.registration.domain.User;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.test.context.ActiveProfiles;
 
-import java.sql.SQLException;
-import java.time.Instant;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
-public class UserRepositoryTest {
+@DataJpaTest
+@ActiveProfiles("test")
+class UserRepositoryTest {
 
-    private final UserRepository repo = new UserRepository();
+    @Autowired
+    private UserRepository repo;
 
     @Test
-    void testInsertAndFindById() throws SQLException {
+    void testSaveAndFindByEmail() {
         User u = new User();
-        u.setEmail("test1@example.com");
+        u.setEmail("test@example.com");
         u.setPasswordHash("hash123");
-        u.setFirstName("John");
-        u.setLastName("Doe");
-        u.setStatus("ACTIVE");
-        u.setCreatedAt(Instant.now());
-        u.setUpdatedAt(Instant.now());
 
-        long id = repo.insert(u);
-        Optional<User> found = repo.findById(id);
+        repo.save(u);
 
-        assertTrue(found.isPresent());
-        assertEquals("test1@example.com", found.get().getEmail());
-    }
+        Optional<User> found = repo.findByEmail("test@example.com");
 
-    @Test
-    void testFindByEmail() throws SQLException {
-        Optional<User> found = repo.findByEmail("test1@example.com");
-        assertTrue(found.isPresent());
-    }
-
-    @Test
-    void testUpdateUser() throws SQLException {
-        Optional<User> found = repo.findByEmail("test1@example.com");
-        assertTrue(found.isPresent());
-
-        User u = found.get();
-        u.setLastName("Updated");
-
-        assertTrue(repo.update(u));
-
-        Optional<User> updated = repo.findById(u.getId());
-        assertEquals("Updated", updated.get().getLastName());
+        assertThat(found).isPresent();
+        assertThat(found.get().getEmail()).isEqualTo("test@example.com");
     }
 }

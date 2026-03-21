@@ -1,7 +1,7 @@
-package com.omutwar.postgres.mapper;
+package com.omutwar.registration.mapper;
 
-import com.omutwar.postgres.dto.UserDto;
 import com.omutwar.registration.domain.User;
+import com.omutwar.registration.dto.UserDto;
 
 public final class UserMapper {
 
@@ -14,7 +14,7 @@ public final class UserMapper {
 		dto.email = u.getEmail();
 		dto.firstName = u.getFirstName();
 		dto.lastName = u.getLastName();
-		dto.status = u.getStatus();
+		dto.status = u.getStatus() != null ? u.getStatus().name() : null;
 		return dto;
 	}
 }

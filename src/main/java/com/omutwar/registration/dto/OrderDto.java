@@ -1,4 +1,4 @@
-package com.omutwar.postgres.dto;
+package com.omutwar.registration.dto;
 
 import java.math.BigDecimal;
 

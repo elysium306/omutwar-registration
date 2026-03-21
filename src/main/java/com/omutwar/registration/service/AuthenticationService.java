@@ -8,40 +8,41 @@ import com.omutwar.registration.exception.NotFoundException;
 import com.omutwar.registration.exception.ValidationException;
 import com.omutwar.registration.logging.AppLogger;
 import com.omutwar.registration.repository.LoginAuditRepository;
+import com.omutwar.registration.repository.UserRepository;
 import com.omutwar.registration.security.PasswordHasher;
 import com.omutwar.registration.security.SessionSecurityService;
 import org.slf4j.Logger;
+import org.springframework.stereotype.Service;
 
-import java.sql.SQLException;
 import java.time.Instant;
-import java.util.Optional;
 
+@Service
 public class AuthenticationService {
 
 	private static final Logger log = AppLogger.get(AuthenticationService.class);
 
-	private final UserService userService = new UserService();
-	private final SessionSecurityService sessionSecurity = new SessionSecurityService();
-	private final LoginAuditRepository auditRepo = new LoginAuditRepository();
+	private final UserRepository userRepository;
+	private final LoginAuditRepository auditRepository;
+	private final SessionSecurityService sessionSecurityService;
 
-	public LoginResponse login(String email, String password, String ip, String userAgent) throws SQLException {
+	public AuthenticationService(UserRepository userRepository, LoginAuditRepository auditRepository,
+			SessionSecurityService sessionSecurityService) {
+		this.userRepository = userRepository;
+		this.auditRepository = auditRepository;
+		this.sessionSecurityService = sessionSecurityService;
+	}
+
+	public LoginResponse login(String email, String password, String ip, String userAgent) {
 		log.info("Attempting login for {}", email);
 
-		Optional<User> userOpt = userService.getUserByEmail(email);
-
-		if (userOpt.isEmpty()) {
-			recordAudit(null, ip, userAgent, false);
-			throw new NotFoundException("Invalid credentials");
-		}
-
-		User user = userOpt.get();
+		User user = userRepository.findByEmail(email).orElseThrow(() -> new NotFoundException("Invalid credentials"));
 
 		if (!PasswordHasher.verify(password, user.getPasswordHash())) {
 			recordAudit(user.getId(), ip, userAgent, false);
 			throw new ValidationException("Invalid credentials");
 		}
 
-		Session session = sessionSecurity.createSecureSession(user.getId());
+		Session session = sessionSecurityService.createSecureSession(user.getId());
 
 		recordAudit(user.getId(), ip, userAgent, true);
 
@@ -53,20 +54,19 @@ public class AuthenticationService {
 		return resp;
 	}
 
-	public void logout(long sessionId) throws SQLException {
+	public void logout(long sessionId) {
 		log.info("Revoking session {}", sessionId);
-		sessionSecurity.revokeSession(sessionId);
+		sessionSecurityService.revokeSession(sessionId);
 	}
 
-	private void recordAudit(Long userId, String ip, String userAgent, boolean success) throws SQLException {
+	private void recordAudit(Long userId, String ip, String userAgent, boolean success) {
 		LoginAudit audit = new LoginAudit();
 		audit.setUserId(userId);
 		audit.setLoginTimestamp(Instant.now());
 		audit.setIpAddress(ip);
 		audit.setUserAgent(userAgent);
 		audit.setSuccess(success);
-		// dropped setRequestFingerprint to match your current LoginAudit type
 
-		auditRepo.insert(audit);
+		auditRepository.save(audit);
 	}
 }

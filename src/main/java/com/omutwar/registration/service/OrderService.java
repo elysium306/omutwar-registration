@@ -2,24 +2,32 @@ package com.omutwar.registration.service;
 
 import com.omutwar.registration.domain.Order;
 import com.omutwar.registration.repository.OrderRepository;
+import org.springframework.stereotype.Service;
 
-import java.sql.SQLException;
 import java.util.List;
-import java.util.Optional;
 
+@Service
 public class OrderService {
 
-	private final OrderRepository orderRepository = new OrderRepository();
+	private final OrderRepository orders;
 
-	public long createOrder(Order order) throws SQLException {
-		return orderRepository.insert(order);
+	public OrderService(OrderRepository orders) {
+		this.orders = orders;
 	}
 
-	public Optional<Order> getOrderById(long id) throws SQLException {
-		return orderRepository.findById(id);
+	public List<Order> getAll() {
+		return orders.findAll();
 	}
 
-	public List<Order> getOrdersForUser(long userId) throws SQLException {
-		return orderRepository.findByUserId(userId);
+	public Order getById(Long id) {
+		return orders.findById(id).orElseThrow();
+	}
+
+	public Order save(Order order) {
+		return orders.save(order);
+	}
+
+	public void delete(Long id) {
+		orders.deleteById(id);
 	}
 }

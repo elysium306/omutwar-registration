@@ -1,37 +1,30 @@
 package com.omutwar.registration.controller;
 
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
 import com.omutwar.registration.dto.LoginResponse;
-import com.omutwar.registration.logging.AppLogger;
 import com.omutwar.registration.request.LoginRequest;
 import com.omutwar.registration.service.AuthenticationService;
-import com.omutwar.registration.validation.EmailValidator;
-import com.omutwar.registration.validation.ValidationUtils;
-import org.slf4j.Logger;
 
-import java.sql.SQLException;
+import jakarta.servlet.http.HttpServletRequest;
 
+@RestController
+@RequestMapping("/auth")
 public class LoginController {
 
-    private static final Logger log = AppLogger.get(LoginController.class);
-    private final AuthenticationService authService = new AuthenticationService();
+	private final AuthenticationService authService;
 
-    public LoginResponse login(LoginRequest req) throws SQLException {
-        log.info("Login request received for {}", req.email);
+	public LoginController(AuthenticationService authService) {
+		this.authService = authService;
+	}
 
-        ValidationUtils.requireNonEmpty(req.email, "email");
-        ValidationUtils.requireNonEmpty(req.password, "password");
-        EmailValidator.validate(req.email);
-
-        return authService.login(
-                req.email,
-                req.password,
-                req.ipAddress,
-                req.userAgent
-        );
-    }
-
-    public void logout(long sessionId) throws SQLException {
-        log.info("Logout request for session {}", sessionId);
-        authService.logout(sessionId);
-    }
+	@PostMapping("/login")
+	public LoginResponse login(@RequestBody LoginRequest req, HttpServletRequest http) {
+		String ip = http.getRemoteAddr();
+		String ua = http.getHeader("User-Agent");
+		return authService.login(req.email, req.password, ip, ua);
+	}
 }

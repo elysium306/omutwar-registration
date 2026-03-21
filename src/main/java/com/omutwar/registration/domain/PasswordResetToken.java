@@ -2,9 +2,15 @@ package com.omutwar.registration.domain;
 
 import java.time.Instant;
 
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+
 public class PasswordResetToken {
 
-	private long id;
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Long id;
 	private long userId;
 	private String token;
 	private Instant createdAt;

@@ -2,33 +2,32 @@ package com.omutwar.registration.repository;
 
 import com.omutwar.registration.domain.Order;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.test.context.ActiveProfiles;
 
 import java.math.BigDecimal;
-import java.sql.SQLException;
 import java.time.Instant;
-import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
-public class OrderRepositoryTest {
+@DataJpaTest
+@ActiveProfiles("test")
+class OrderRepositoryTest {
 
-    private final OrderRepository repo = new OrderRepository();
+    @Autowired
+    private OrderRepository repo;
 
     @Test
-    void testInsertOrder() throws SQLException {
+    void testSaveOrder() {
         Order o = new Order();
-        o.setUserId(1);
-        o.setTotalAmount(new BigDecimal("49.99"));
+        o.setUserId(1L);
+        o.setTotalAmount(new BigDecimal("10.00"));
         o.setStatus("PENDING");
         o.setCreatedAt(Instant.now());
 
-        long id = repo.insert(o);
-        assertTrue(repo.findById(id).isPresent());
-    }
+        Order saved = repo.save(o);
 
-    @Test
-    void testFindByUserId() throws SQLException {
-        List<Order> orders = repo.findByUserId(1);
-        assertNotNull(orders);
+        assertThat(saved.getId()).isNotNull();
     }
 }

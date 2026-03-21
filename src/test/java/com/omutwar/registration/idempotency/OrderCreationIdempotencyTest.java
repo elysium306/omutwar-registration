@@ -1,30 +1,44 @@
 package com.omutwar.registration.idempotency;
 
-import com.omutwar.registration.domain.Order;
-import com.omutwar.registration.service.OrderService;
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.math.BigDecimal;
-import java.sql.SQLException;
 import java.time.Instant;
 
-import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.test.context.ActiveProfiles;
 
-public class OrderCreationIdempotencyTest {
+import com.omutwar.registration.domain.Order;
+import com.omutwar.registration.repository.OrderRepository;
 
-    private final OrderService service = new OrderService();
+@DataJpaTest
+@ActiveProfiles("test")
+class OrderCreationIdempotencyTest {
 
-    @Test
-    void testOrderIdempotency() throws SQLException {
-        Order o = new Order();
-        o.setUserId(1);
-        o.setTotalAmount(new BigDecimal("10.00"));
-        o.setStatus("PENDING");
-        o.setCreatedAt(Instant.now());
+	@Autowired
+	private OrderRepository repo;
 
-        long id1 = service.createOrder(o);
-        long id2 = service.createOrder(o);
+	@Test
+	void testDuplicateIdempotencyKeyFails() {
+		Order o1 = new Order();
+		o1.setUserId(1L);
+		o1.setTotalAmount(new BigDecimal("10.00"));
+		o1.setStatus("PENDING");
+		o1.setCreatedAt(Instant.now());
+		o1.setIdempotencyKey("abc123");
 
-        assertEquals(id1, id2);
-    }
+		repo.saveAndFlush(o1);
+
+		Order o2 = new Order();
+		o2.setUserId(1L);
+		o2.setTotalAmount(new BigDecimal("10.00"));
+		o2.setStatus("PENDING");
+		o2.setCreatedAt(Instant.now());
+		o2.setIdempotencyKey("abc123"); // duplicate
+
+		assertThrows(DataIntegrityViolationException.class, () -> repo.saveAndFlush(o2));
+	}
 }

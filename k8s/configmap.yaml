@@ -1,0 +1,37 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+  namespace: omutwar
+data:
+  # -------------------------
+  # Spring Boot Profile
+  # -------------------------
+  SPRING_PROFILES_ACTIVE: "k8s"
+
+  # -------------------------
+  # Database Configuration
+  # -------------------------
+  SPRING_DATASOURCE_URL: "jdbc:postgresql://postgres:5432/registration"
+  SPRING_DATASOURCE_USERNAME: "postgres"
+  SPRING_DATASOURCE_PASSWORD: "postgres"
+
+  # -------------------------
+  # Hibernate / Flyway
+  # -------------------------
+  SPRING_JPA_HIBERNATE_DDL_AUTO: "update"
+  SPRING_FLYWAY_ENABLED: "false"
+
+  # -------------------------
+  # Bootstrap Superuser
+  # -------------------------
+  APP_BOOTSTRAP_EMAIL: "bootstrap@system.local"
+  APP_BOOTSTRAP_PASSWORD: "bootstrap123"
+  APP_BOOTSTRAP_FIRST_NAME: "System"
+  APP_BOOTSTRAP_LAST_NAME: "Bootstrap"
+
+  # -------------------------
+  # Default User Password (REQUIRED)
+  # This was missing and caused the crash
+  # -------------------------
+  APP_DEFAULT_USER_PASSWORD: "changeme123"

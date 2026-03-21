@@ -2,28 +2,36 @@ package com.omutwar.registration.service;
 
 import com.omutwar.registration.domain.User;
 import com.omutwar.registration.repository.UserRepository;
+import jakarta.validation.ConstraintViolationException;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 
-import java.sql.SQLException;
-import java.time.Instant;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import static org.junit.jupiter.api.Assertions.*;
+@SpringBootTest
+@ActiveProfiles("test")
+class UserConstraintValidationTest {
 
-public class UserConstraintValidationTest {
+	@Autowired
+	private UserRepository repo;
 
-    private final UserRepository repo = new UserRepository();
+	@Test
+	void testInvalidEmailFails() {
+		User u = new User();
+		u.setEmail("not-an-email");
+		u.setPasswordHash("hash123");
 
-    @Test
-    void testInvalidStatusFails() {
-        User u = new User();
-        u.setEmail("badstatus@example.com");
-        u.setPasswordHash("hash");
-        u.setFirstName("Bad");
-        u.setLastName("Status");
-        u.setStatus("INVALID");
-        u.setCreatedAt(Instant.now());
-        u.setUpdatedAt(Instant.now());
+		assertThrows(ConstraintViolationException.class, () -> repo.saveAndFlush(u));
+	}
 
-        assertThrows(SQLException.class, () -> repo.insert(u));
-    }
+	@Test
+	void testBlankEmailFails() {
+		User u = new User();
+		u.setEmail("");
+		u.setPasswordHash("hash123");
+
+		assertThrows(ConstraintViolationException.class, () -> repo.saveAndFlush(u));
+	}
 }

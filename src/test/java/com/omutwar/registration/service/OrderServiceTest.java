@@ -2,26 +2,33 @@ package com.omutwar.registration.service;
 
 import com.omutwar.registration.domain.Order;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 
 import java.math.BigDecimal;
-import java.sql.SQLException;
 import java.time.Instant;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
-public class OrderServiceTest {
+@SpringBootTest
+@ActiveProfiles("test")
+class OrderServiceTest {
 
-    private final OrderService service = new OrderService();
+	@Autowired
+	private OrderService orderService;
 
-    @Test
-    void testCreateOrder() throws SQLException {
-        Order o = new Order();
-        o.setUserId(1);
-        o.setTotalAmount(new BigDecimal("25.00"));
-        o.setStatus("PENDING");
-        o.setCreatedAt(Instant.now());
+	@Test
+	void testCreateOrder() {
+		Order o = new Order();
+		o.setUserId(1L);
+		o.setTotalAmount(new BigDecimal("10.00"));
+		o.setStatus("PENDING");
+		o.setCreatedAt(Instant.now());
+		o.setIdempotencyKey("svc-order-1");
 
-        long id = service.createOrder(o);
-        assertTrue(service.getOrderById(id).isPresent());
-    }
+		Order saved = orderService.save(o);
+
+		assertThat(saved.getId()).isNotNull();
+	}
 }

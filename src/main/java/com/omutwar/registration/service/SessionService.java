@@ -2,19 +2,24 @@ package com.omutwar.registration.service;
 
 import com.omutwar.registration.domain.Session;
 import com.omutwar.registration.repository.SessionRepository;
+import org.springframework.stereotype.Service;
 
-import java.sql.SQLException;
 import java.util.Optional;
 
+@Service
 public class SessionService {
 
-    private final SessionRepository repo = new SessionRepository();
+	private final SessionRepository sessions;
 
-    public long createSession(Session s) throws SQLException {
-        return repo.insert(s);
-    }
+	public SessionService(SessionRepository sessions) {
+		this.sessions = sessions;
+	}
 
-    public Optional<Session> getSessionById(long id) throws SQLException {
-        return repo.findById(id);
-    }
+	public Optional<Session> getByToken(String token) {
+		return sessions.findByToken(token);
+	}
+
+	public Session save(Session session) {
+		return sessions.save(session);
+	}
 }

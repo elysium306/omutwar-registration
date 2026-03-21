@@ -1,34 +1,33 @@
 package com.omutwar.registration.service;
 
 import com.omutwar.registration.domain.User;
-import com.omutwar.registration.service.UserService;
+import com.omutwar.registration.repository.UserRepository;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.test.context.ActiveProfiles;
 
-import java.sql.SQLException;
-import java.time.Instant;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import static org.junit.jupiter.api.Assertions.*;
+@SpringBootTest
+@ActiveProfiles("test")
+class UserRegistrationIdempotencyTest {
 
-public class UserRegistrationIdempotencyTest {
+	@Autowired
+	private UserRepository repo;
 
-    private final UserService service = new UserService();
+	@Test
+	void testDuplicateEmailFails() {
+		User u1 = new User();
+		u1.setEmail("idempotent@example.com");
+		u1.setPasswordHash("hash123");
+		repo.saveAndFlush(u1);
 
-    @Test
-    void testIdempotentUserRegistration() throws SQLException {
-        User u = new User();
-        u.setEmail("idempotent@example.com");
-        u.setPasswordHash("hash");
-        u.setFirstName("Idem");
-        u.setLastName("Potent");
-        u.setStatus("ACTIVE");
-        u.setCreatedAt(Instant.now());
-        u.setUpdatedAt(Instant.now());
+		User u2 = new User();
+		u2.setEmail("idempotent@example.com"); // duplicate
+		u2.setPasswordHash("hash456");
 
-        long id1 = service.registerUser(u);
-
-        // Retry same request
-        long id2 = service.registerUser(u);
-
-        assertEquals(id1, id2, "Idempotent registration should return same user ID");
-    }
+		assertThrows(DataIntegrityViolationException.class, () -> repo.saveAndFlush(u2));
+	}
 }

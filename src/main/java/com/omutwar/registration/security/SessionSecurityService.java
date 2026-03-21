@@ -1,34 +1,48 @@
 package com.omutwar.registration.security;
 
-import java.sql.SQLException;
+import com.omutwar.registration.domain.Session;
+import com.omutwar.registration.repository.SessionRepository;
+import org.springframework.stereotype.Service;
+
 import java.time.Instant;
 import java.util.Optional;
 
-import com.omutwar.registration.domain.Session;
-import com.omutwar.registration.repository.SessionRepository;
-
+@Service
 public class SessionSecurityService {
 
-	final SessionRepository repo = new SessionRepository();
+	private final SessionRepository sessionRepository;
 
-	public Session createSecureSession(long userId) throws SQLException {
+	public SessionSecurityService(SessionRepository sessionRepository) {
+		this.sessionRepository = sessionRepository;
+	}
+
+	public Session createSecureSession(long userId) {
 		Session s = new Session();
 		s.setUserId(userId);
 		s.setToken(TokenGenerator.sessionToken());
 		s.setCreatedAt(Instant.now());
-		s.setExpiresAt(Instant.now().plusSeconds(3600));
-		s.setIdempotencyKey(IdempotencyKeyGenerator.generate());
+		s.setExpiresAt(Instant.now().plusSeconds(3600)); // 1 hour
 
-		long id = repo.insert(s);
-		s.setId(id);
+		return sessionRepository.save(s);
+	}
+
+	public Optional<Session> validateSession(String token) {
+		Optional<Session> s = sessionRepository.findByToken(token);
+
+		if (s.isEmpty())
+			return Optional.empty();
+		if (s.get().getExpiresAt().isBefore(Instant.now()))
+			return Optional.empty();
+		if (s.get().getRevokedAt() != null)
+			return Optional.empty();
+
 		return s;
 	}
 
-	public Optional<Session> findSessionByToken(String token) throws SQLException {
-		return repo.findByToken(token); // <-- FIX
-	}
-
-	public void revokeSession(long sessionId) throws SQLException {
-		repo.revoke(sessionId);
+	public void revokeSession(long sessionId) {
+		sessionRepository.findById(sessionId).ifPresent(session -> {
+			session.setRevokedAt(Instant.now());
+			sessionRepository.save(session);
+		});
 	}
 }

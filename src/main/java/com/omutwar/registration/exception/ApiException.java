@@ -1,11 +1,14 @@
 package com.omutwar.registration.exception;
 
+import java.io.Serial;
+
 public class ApiException extends RuntimeException {
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = -8336450336802764300L;
+    /**
+     * 
+     */
+    @Serial
+    private static final long serialVersionUID = -8336450336802764300L;
 	private final int statusCode;
 
 	public ApiException(String message, int statusCode) {

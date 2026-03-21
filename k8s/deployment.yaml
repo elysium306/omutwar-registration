@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: omutwar-app
+  namespace: omutwar
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: omutwar-app
+  template:
+    metadata:
+      labels:
+        app: omutwar-app
+    spec:
+      containers:
+        - name: omutwar-app
+          image: omutwar-app:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8080
+          envFrom:
+            - configMapRef:
+                name: app-config
+            - secretRef:
+                name: app-secret
