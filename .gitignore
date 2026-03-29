@@ -1,25 +1,36 @@
-### Documentation
-HELP.md
-
-### Build Directories
+### Build ###
 target/
-!**/src/main/**/target/
-!**/src/test/**/target/
+build/
 
-### STS ###
-.apt_generated
-.classpath
-.factorypath
-.project
-.settings
-.springBeans
-.sts4-cache
+### Maven Wrapper ###
+.mvn/
+mvnw
+mvnw.cmd
 
 ### IntelliJ IDEA ###
-.idea
-*.iws
+.idea/
 *.iml
+*.iws
 *.ipr
+
+### VS Code ###
+.vscode/
+
+### Logs ###
+*.log
+
+### OS Files ###
+.DS_Store
+Thumbs.db
+
+### Spring Boot ###
+*.pid
+*.out
+
+### Environment / Secrets ###
+.env
+application-local.properties
+application-*.yml
 
 ### NetBeans ###
 /nbproject/private/
@@ -27,17 +38,9 @@ target/
 /dist/
 /nbdist/
 /.nb-gradle/
-build/
-!**/src/main/**/build/
-!**/src/test/**/build/
 
-### VS Code ###
-.vscode/
-
-### Maven Wrapper ###
-.mvn/
-mvnw
-mvnw.cmd
-
-### Git files ###
-.gitattributes
+### Eclipse ###
+.project
+.factorypath
+.classpath
+.settings/
